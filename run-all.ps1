@@ -56,7 +56,7 @@ foreach ($script in $scripts) {
 # ---------------------------------------------
 Write-Host ""
 Write-Host "================================================" -ForegroundColor Green
-Write-Host "  STEP 1/2 — Removing bloatware..." -ForegroundColor Green
+Write-Host "  STEP 1/2 -- Removing bloatware..." -ForegroundColor Green
 Write-Host "================================================" -ForegroundColor Green
 Write-Host ""
 & "$TempDir\remove-bloatware.ps1"
@@ -66,7 +66,7 @@ Write-Host ""
 # ---------------------------------------------
 Write-Host ""
 Write-Host "================================================" -ForegroundColor Green
-Write-Host "  STEP 2/2 — Installing tools..." -ForegroundColor Green
+Write-Host "  STEP 2/2 -- Installing tools..." -ForegroundColor Green
 Write-Host "================================================" -ForegroundColor Green
 Write-Host ""
 & "$TempDir\install-tools.ps1"

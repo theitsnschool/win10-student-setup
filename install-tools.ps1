@@ -199,7 +199,7 @@ if ($gitExe) {
     git config --global core.editor "code --wait"
     Write-Host "  [+] Git configured (autocrlf=true, defaultBranch=main, editor=vscode)" -ForegroundColor Green
 } else {
-    Write-Host "  [!] Git not found in PATH yet — config will apply after restart." -ForegroundColor DarkYellow
+    Write-Host "  [!] Git not found in PATH yet -- config will apply after restart." -ForegroundColor DarkYellow
     Write-Host "      Run this after reboot: git config --global core.autocrlf true" -ForegroundColor DarkGray
     Write-Host "                             git config --global init.defaultBranch main" -ForegroundColor DarkGray
     Write-Host "                             git config --global core.editor code --wait" -ForegroundColor DarkGray

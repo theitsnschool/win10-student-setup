@@ -11,7 +11,7 @@
 |--------|---------|
 | `remove-bloatware.ps1` | Removes Xbox, games, Cortana, consumer apps, cleans Start Menu |
 | `install-tools.ps1` | Installs all needed dev and productivity tools via winget |
-| `run-all.ps1` | Master launcher, runs both scripts in the correct order |
+| `run-all.ps1` | Master launcher -- runs both scripts in the correct order |
 
 ---
 
@@ -23,6 +23,8 @@ Open **PowerShell as Administrator** and run:
 Set-ExecutionPolicy Bypass -Scope Process -Force
 irm https://raw.githubusercontent.com/bkaztaou/win10-student-setup/main/run-all.ps1 | iex
 ```
+
+> Replace `bkaztaou` with your GitHub username.
 
 That's it. The script will clean the system and install all tools automatically.
 
@@ -132,21 +134,21 @@ $InstallOffice        = $false  # Set $true to launch Office installer (requires
 
 ## After running
 
-1. **Restart the machine**: some changes require a reboot
-2. **Run Windows Update**: install all pending security patches
-3. **Activate Office**: sign in with your institution's Microsoft account
-4. **Install Packet Tracer**: requires a free Cisco NetAcad account at [netacad.com](https://www.netacad.com)
-5. **Install SAGE**: if not available via winget, download from [sagemath.org](https://www.sagemath.org)
+1. **Restart the machine** -- some changes require a reboot
+2. **Run Windows Update** -- install all pending security patches
+3. **Activate Office** -- sign in with your institution's Microsoft account
+4. **Install Packet Tracer** -- requires a free Cisco NetAcad account at [netacad.com](https://www.netacad.com)
+5. **Install SAGE** -- if not available via winget, download from [sagemath.org](https://www.sagemath.org)
 
 ---
 
 ## Troubleshooting
 
 **`[!] Could not remove app` errors**
-Some apps are system-protected on certain Windows editions. These are safe to ignore, they won't affect performance.
+Some apps are system-protected on certain Windows editions. These are safe to ignore -- they won't affect performance.
 
 **`winget : command not found`**
-Run Windows Update first, winget is delivered via the App Installer update. Or install it manually from the [Microsoft Store](https://apps.microsoft.com/detail/9nblggh4nns1).
+Run Windows Update first -- winget is delivered via the App Installer update. Or install it manually from the [Microsoft Store](https://apps.microsoft.com/detail/9nblggh4nns1).
 
 **App reinstalls after update**
 Run `remove-bloatware.ps1` again after the first major Windows Update to catch anything that was re-provisioned.
@@ -173,4 +175,4 @@ win10-student-setup/
 
 ## License
 
-MIT, free to use, modify, and share.
+MIT -- free to use, modify, and share.

@@ -28,19 +28,28 @@ function Install-App {
         [string]$WingetId,
         [string]$Category = ""
     )
-    if ($VerboseOutput) { Write-Host "  [>] Installing: $Name ($WingetId)" -ForegroundColor Yellow }
+    if ($VerboseOutput) { Write-Host "  [>] Installing: $Name" -ForegroundColor Yellow }
+
+    # --source winget skips the broken msstore source
+    # --silent suppresses UI, but we keep interactivity ON so winget can make decisions
     $result = winget install --id $WingetId `
+        --source winget `
         --silent `
         --accept-package-agreements `
         --accept-source-agreements `
-        --disable-interactivity `
         2>&1
-    if ($LASTEXITCODE -eq 0 -or $result -match "already installed") {
-        Write-Host "  [+] Done: $Name" -ForegroundColor Green
-    } elseif ($result -match "already installed") {
+
+    $resultText = $result -join " "
+
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "  [+] Installed: $Name" -ForegroundColor Green
+    } elseif ($resultText -match "already installed" -or $resultText -match "No applicable upgrade") {
         Write-Host "  [=] Already installed: $Name" -ForegroundColor DarkGray
     } else {
-        Write-Host "  [!] Failed or needs manual install: $Name" -ForegroundColor Red
+        Write-Host "  [!] Failed: $Name" -ForegroundColor Red
+        # Print the actual winget error so we can diagnose it
+        $result | Where-Object { $_ -match "error|failed|blocked|0x" } |
+            ForEach-Object { Write-Host "      >> $_" -ForegroundColor DarkRed }
         Write-Host "      Winget ID: $WingetId" -ForegroundColor DarkGray
     }
 }
@@ -173,20 +182,28 @@ if ($InstallOffice) {
 }
 
 # ---------------------------------------------
+# REFRESH PATH (picks up newly installed tools)
+# ---------------------------------------------
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
+            [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+# ---------------------------------------------
 # CONFIGURE GIT GLOBAL DEFAULTS
 # ---------------------------------------------
 Write-Host ""
 Write-Host "Configuring Git defaults..." -ForegroundColor Cyan
-git config --global core.autocrlf true         # Windows line endings
-git config --global init.defaultBranch main    # Use 'main' not 'master'
-git config --global core.editor "code --wait"  # VS Code as default editor
-Write-Host "  [+] Git configured (autocrlf=true, defaultBranch=main, editor=vscode)" -ForegroundColor Green
-
-# ---------------------------------------------
-# ADD PYTHON & GIT TO PATH (refresh)
-# ---------------------------------------------
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
-            [System.Environment]::GetEnvironmentVariable("Path", "User")
+$gitExe = Get-Command git -ErrorAction SilentlyContinue
+if ($gitExe) {
+    git config --global core.autocrlf true
+    git config --global init.defaultBranch main
+    git config --global core.editor "code --wait"
+    Write-Host "  [+] Git configured (autocrlf=true, defaultBranch=main, editor=vscode)" -ForegroundColor Green
+} else {
+    Write-Host "  [!] Git not found in PATH yet — config will apply after restart." -ForegroundColor DarkYellow
+    Write-Host "      Run this after reboot: git config --global core.autocrlf true" -ForegroundColor DarkGray
+    Write-Host "                             git config --global init.defaultBranch main" -ForegroundColor DarkGray
+    Write-Host "                             git config --global core.editor code --wait" -ForegroundColor DarkGray
+}
 
 # ---------------------------------------------
 # INSTALL PYTHON PACKAGES

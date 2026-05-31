@@ -67,6 +67,12 @@ function Disable-Service {
     }
 }
 
+function Set-RegistryValue {
+    param([string]$Path, [string]$Name, $Value, [string]$Type = "DWord")
+    if (-not (Test-Path $Path)) { New-Item -Path $Path -Force | Out-Null }
+    Set-ItemProperty -Path $Path -Name $Name -Value $Value -Type $Type -Force
+}
+
 Write-Host ""
 Write-Host "================================================" -ForegroundColor Cyan
 Write-Host "  PHASE 1 - Deep System Cleanup" -ForegroundColor Cyan
@@ -128,30 +134,15 @@ Write-Host ""
 Write-Host "[CLEANUP 6/6] Running Disk Cleanup (silent)..." -ForegroundColor Green
 $cleanupKey = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VolumeCaches"
 $sageSets = @(
-    "Active Setup Temp Folders",
-    "BranchCache",
-    "Downloaded Program Files",
-    "Internet Cache Files",
-    "Memory Dump Files",
-    "Old ChkDsk Files",
-    "Previous Installations",
-    "Recycle Bin",
-    "Service Pack Cleanup",
-    "Setup Log Files",
-    "System error memory dump files",
-    "System error minidump files",
-    "Temporary Files",
-    "Temporary Setup Files",
-    "Temporary Sync Files",
-    "Thumbnail Cache",
-    "Update Cleanup",
-    "Upgrade Discarded Files",
-    "Windows Defender",
-    "Windows Error Reporting Archive Files",
-    "Windows Error Reporting Queue Files",
-    "Windows Error Reporting System Archive Files",
-    "Windows Error Reporting System Queue Files",
-    "Windows ESD installation files",
+    "Active Setup Temp Folders", "BranchCache", "Downloaded Program Files",
+    "Internet Cache Files", "Memory Dump Files", "Old ChkDsk Files",
+    "Previous Installations", "Recycle Bin", "Service Pack Cleanup",
+    "Setup Log Files", "System error memory dump files", "System error minidump files",
+    "Temporary Files", "Temporary Setup Files", "Temporary Sync Files",
+    "Thumbnail Cache", "Update Cleanup", "Upgrade Discarded Files",
+    "Windows Defender", "Windows Error Reporting Archive Files",
+    "Windows Error Reporting Queue Files", "Windows Error Reporting System Archive Files",
+    "Windows Error Reporting System Queue Files", "Windows ESD installation files",
     "Windows Upgrade Log Files"
 )
 foreach ($set in $sageSets) {
@@ -169,7 +160,7 @@ Write-Host "  PHASE 2 - Bloatware Removal" -ForegroundColor Cyan
 Write-Host "================================================" -ForegroundColor Cyan
 
 Write-Host ""
-Write-Host "[1/7] Removing Xbox & Gaming apps..." -ForegroundColor Green
+Write-Host "[1/9] Removing Xbox & Gaming apps..." -ForegroundColor Green
 $xboxApps = @(
     "Microsoft.Xbox.TCUI",
     "Microsoft.XboxApp",
@@ -177,7 +168,8 @@ $xboxApps = @(
     "Microsoft.XboxGamingOverlay",
     "Microsoft.XboxIdentityProvider",
     "Microsoft.XboxSpeechToTextOverlay",
-    "Microsoft.GamingServices"
+    "Microsoft.GamingServices",
+    "Microsoft.XboxGameCallableUI"
 )
 foreach ($app in $xboxApps) { Remove-UWPApp $app }
 Disable-Service "XblAuthManager"  "Xbox Live Auth Manager"
@@ -185,14 +177,12 @@ Disable-Service "XblGameSave"     "Xbox Live Game Save"
 Disable-Service "XboxGipSvc"      "Xbox Accessory Management"
 Disable-Service "XboxNetApiSvc"   "Xbox Live Networking"
 
-$gameDVRPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR"
-if (-not (Test-Path $gameDVRPath)) { New-Item -Path $gameDVRPath -Force | Out-Null }
-Set-ItemProperty -Path $gameDVRPath -Name "AppCaptureEnabled" -Value 0 -Type DWord -Force
-Set-ItemProperty -Path "HKCU:\System\GameConfigStore" -Name "GameDVR_Enabled" -Value 0 -Type DWord -Force
+Set-RegistryValue "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\GameDVR" "AppCaptureEnabled" 0
+Set-RegistryValue "HKCU:\System\GameConfigStore" "GameDVR_Enabled" 0
 Write-Host "  [x] Game Bar (DVR) disabled" -ForegroundColor Cyan
 
 Write-Host ""
-Write-Host "[2/7] Removing consumer/entertainment apps..." -ForegroundColor Green
+Write-Host "[2/9] Removing consumer/entertainment apps..." -ForegroundColor Green
 $consumerApps = @(
     "Microsoft.MicrosoftSolitaireCollection",
     "Microsoft.MicrosoftMahjong",
@@ -216,7 +206,7 @@ $consumerApps = @(
 foreach ($app in $consumerApps) { Remove-UWPApp $app }
 
 Write-Host ""
-Write-Host "[3/7] Removing communication/social apps..." -ForegroundColor Green
+Write-Host "[3/9] Removing communication/social apps..." -ForegroundColor Green
 $commApps = @(
     "Microsoft.YourPhone",
     "Microsoft.People",
@@ -228,17 +218,16 @@ foreach ($app in $commApps) { Remove-UWPApp $app }
 if ($RemoveSkype) { Remove-UWPApp "Microsoft.SkypeApp" }
 
 Write-Host ""
-Write-Host "[4/7] Disabling Cortana & taskbar web search..." -ForegroundColor Green
-$cortanaPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
-if (-not (Test-Path $cortanaPath)) { New-Item -Path $cortanaPath -Force | Out-Null }
-Set-ItemProperty -Path $cortanaPath -Name "AllowCortana"    -Value 0 -Type DWord -Force
-Set-ItemProperty -Path $cortanaPath -Name "BingSearchEnabled" -Value 0 -Type DWord -Force
-Set-ItemProperty -Path $cortanaPath -Name "DisableWebSearch" -Value 1 -Type DWord -Force
+Write-Host "[4/9] Disabling Cortana & taskbar web search..." -ForegroundColor Green
+Set-RegistryValue "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" "AllowCortana" 0
+Set-RegistryValue "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" "BingSearchEnabled" 0
+Set-RegistryValue "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" "DisableWebSearch" 1
+Set-RegistryValue "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search" "ConnectedSearchUseWeb" 0
 Write-Host "  [x] Cortana disabled via policy" -ForegroundColor Cyan
 Remove-UWPApp "Microsoft.549981C3F5F10"
 
 Write-Host ""
-Write-Host "[5/7] Removing unnecessary utilities..." -ForegroundColor Green
+Write-Host "[5/9] Removing unnecessary utilities..." -ForegroundColor Green
 $utilApps = @(
     "Microsoft.Windows.Photos",
     "Microsoft.WindowsFeedbackHub",
@@ -257,9 +246,48 @@ $utilApps = @(
 )
 foreach ($app in $utilApps) { Remove-UWPApp $app }
 
+Write-Host ""
+Write-Host "[6/9] Removing remaining bloat from AppxPackage list..." -ForegroundColor Green
+$extraApps = @(
+    "Microsoft.Windows.ContentDeliveryManager",
+    "Microsoft.Windows.PeopleExperienceHost",
+    "Microsoft.Windows.Search",
+    "Microsoft.Windows.StartMenuExperienceHost",
+    "Microsoft.StorePurchaseApp",
+    "Microsoft.WindowsStore",
+    "Microsoft.VP9VideoExtensions",
+    "Microsoft.WebMediaExtensions",
+    "Microsoft.WebpImageExtension",
+    "Microsoft.HEIFImageExtension",
+    "Microsoft.Windows.Photos",
+    "Microsoft.ECApp",
+    "Microsoft.BioEnrollment",
+    "Microsoft.CredDialogHost",
+    "Microsoft.Win32WebViewHost",
+    "Microsoft.Windows.AssignedAccessLockApp",
+    "Microsoft.Windows.CapturePicker",
+    "Microsoft.Windows.CloudExperienceHost",
+    "Microsoft.Windows.NarratorQuickStart",
+    "Microsoft.Windows.OOBENetworkCaptivePortal",
+    "Microsoft.Windows.OOBENetworkConnectionFlow",
+    "Microsoft.Windows.ParentalControls",
+    "Microsoft.Windows.PinningConfirmationDialog",
+    "Microsoft.Windows.SecHealthUI",
+    "Microsoft.Windows.SecureAssessmentBrowser",
+    "Microsoft.Windows.XGpuEjectDialog",
+    "Microsoft.WindowsCamera",
+    "Microsoft.WindowsFeedback",
+    "MicrosoftWindows.Client.CBS",
+    "MicrosoftWindows.UndockedDevKit",
+    "NcsiUwpApp",
+    "Windows.CBSPreview",
+    "windows.immersivecontrolpanel"
+)
+foreach ($app in $extraApps) { Remove-UWPApp $app }
+
 if ($RemoveOneDrive) {
     Write-Host ""
-    Write-Host "[6/7] Removing OneDrive..." -ForegroundColor Green
+    Write-Host "[7/9] Removing OneDrive..." -ForegroundColor Green
     Stop-Process -Name "OneDrive" -Force -ErrorAction SilentlyContinue
     $od32 = "$env:SystemRoot\System32\OneDriveSetup.exe"
     $od64 = "$env:SystemRoot\SysWOW64\OneDriveSetup.exe"
@@ -275,13 +303,12 @@ if ($RemoveOneDrive) {
     Write-Host "  [x] OneDrive removed" -ForegroundColor Cyan
 } else {
     Write-Host ""
-    Write-Host "[6/7] Skipping OneDrive removal (set RemoveOneDrive=true to enable)" -ForegroundColor DarkGray
+    Write-Host "[7/9] Skipping OneDrive removal (set RemoveOneDrive=true to enable)" -ForegroundColor DarkGray
 }
 
 Write-Host ""
-Write-Host "[7/7] Cleaning Start Menu & UI..." -ForegroundColor Green
+Write-Host "[8/9] Cleaning Start Menu & UI..." -ForegroundColor Green
 $startPath = "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\ContentDeliveryManager"
-if (-not (Test-Path $startPath)) { New-Item -Path $startPath -Force | Out-Null }
 $cdmProps = @{
     "ContentDeliveryAllowed"            = 0
     "OemPreInstalledAppsEnabled"        = 0
@@ -293,28 +320,80 @@ $cdmProps = @{
     "SubscribedContent-338389Enabled"   = 0
     "SubscribedContent-353698Enabled"   = 0
     "SystemPaneSuggestionsEnabled"      = 0
+    "RotatingLockScreenEnabled"         = 0
+    "RotatingLockScreenOverlayEnabled"  = 0
+    "SoftLandingEnabled"                = 0
+    "SubscribedContentEnabled"          = 0
 }
 foreach ($key in $cdmProps.Keys) {
-    Set-ItemProperty -Path $startPath -Name $key -Value $cdmProps[$key] -Type DWord -Force
+    Set-RegistryValue $startPath $key $cdmProps[$key]
 }
 Write-Host "  [x] Start Menu ads and suggestions disabled" -ForegroundColor Cyan
 
-Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" `
-    -Name "ShowTaskViewButton" -Value 0 -Type DWord -Force
+Set-RegistryValue "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "ShowTaskViewButton" 0
 Write-Host "  [x] Task View button hidden" -ForegroundColor Cyan
 
-Set-ItemProperty -Path "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" `
-    -Name "SearchboxTaskbarMode" -Value 0 -Type DWord -Force
+Set-RegistryValue "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Search" "SearchboxTaskbarMode" 0
 Write-Host "  [x] Taskbar search box hidden" -ForegroundColor Cyan
 
-$telemetryPath = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection"
-if (-not (Test-Path $telemetryPath)) { New-Item -Path $telemetryPath -Force | Out-Null }
-Set-ItemProperty -Path $telemetryPath -Name "AllowTelemetry" -Value 0 -Type DWord -Force
+Set-RegistryValue "HKLM:\SOFTWARE\Policies\Microsoft\Windows\DataCollection" "AllowTelemetry" 0
 Write-Host "  [x] Telemetry disabled via policy" -ForegroundColor Cyan
+
+Set-RegistryValue "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\DataCollection" "AllowTelemetry" 0
+Set-RegistryValue "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppCompat" "AITEnable" 0
+Set-RegistryValue "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AppCompat" "DisableInventory" 1
+Set-RegistryValue "HKLM:\SOFTWARE\Policies\Microsoft\SQMClient\Windows" "CEIPEnable" 0
+Set-RegistryValue "HKLM:\SOFTWARE\Policies\Microsoft\Windows\TabletPC" "PreventHandwritingDataSharing" 1
+Set-RegistryValue "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\TextInput" "AllowLinguisticDataCollection" 0
+Write-Host "  [x] Additional telemetry and data collection disabled" -ForegroundColor Cyan
+
+Set-RegistryValue "HKLM:\SOFTWARE\Policies\Microsoft\Windows\AdvertisingInfo" "DisabledByGroupPolicy" 1
+Set-RegistryValue "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\AdvertisingInfo" "Enabled" 0
+Write-Host "  [x] Advertising ID disabled" -ForegroundColor Cyan
+
+Set-RegistryValue "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "Start_TrackProgs" 0
+Set-RegistryValue "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "Start_TrackDocs" 0
+Write-Host "  [x] Recent files and app tracking disabled" -ForegroundColor Cyan
+
+Set-RegistryValue "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "TaskbarMn" 0
+Write-Host "  [x] Chat (Teams) icon removed from taskbar" -ForegroundColor Cyan
+
+Set-RegistryValue "HKCU:\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" "ShowCopilotButton" 0
+Write-Host "  [x] Copilot button hidden from taskbar" -ForegroundColor Cyan
 
 Disable-Service "DiagTrack"        "Connected User Experiences and Telemetry"
 Disable-Service "dmwappushservice" "WAP Push Message Routing"
 Disable-Service "SysMain"          "SysMain (Superfetch)"
+Disable-Service "WSearch"          "Windows Search Indexer"
+Disable-Service "RetailDemo"       "Retail Demo Service"
+Disable-Service "MapsBroker"       "Downloaded Maps Manager"
+Disable-Service "lfsvc"            "Geolocation Service"
+Disable-Service "SharedAccess"     "Internet Connection Sharing"
+Disable-Service "TrkWks"           "Distributed Link Tracking Client"
+Disable-Service "WerSvc"           "Windows Error Reporting"
+
+Write-Host ""
+Write-Host "[9/9] Blocking bloatware from returning after Windows Update..." -ForegroundColor Green
+$provApps = @(
+    "Microsoft.BingNews", "Microsoft.BingWeather", "Microsoft.GamingServices",
+    "Microsoft.GetHelp", "Microsoft.Getstarted", "Microsoft.MicrosoftOfficeHub",
+    "Microsoft.MicrosoftSolitaireCollection", "Microsoft.People",
+    "Microsoft.PowerAutomateDesktop", "Microsoft.Todos",
+    "Microsoft.WindowsCommunicationsApps", "Microsoft.WindowsFeedbackHub",
+    "Microsoft.WindowsMaps", "Microsoft.Xbox.TCUI", "Microsoft.XboxApp",
+    "Microsoft.XboxGameOverlay", "Microsoft.XboxGamingOverlay",
+    "Microsoft.XboxIdentityProvider", "Microsoft.XboxSpeechToTextOverlay",
+    "Microsoft.ZuneMusic", "Microsoft.ZuneVideo", "MicrosoftTeams"
+)
+foreach ($app in $provApps) {
+    $prov = Get-AppxProvisionedPackage -Online -ErrorAction SilentlyContinue |
+        Where-Object { $_.DisplayName -eq $app }
+    if ($prov) {
+        Remove-AppxProvisionedPackage -Online -PackageName $prov.PackageName -ErrorAction SilentlyContinue | Out-Null
+        Write-Host "  [-] Deprovisioned: $app" -ForegroundColor Yellow
+    }
+}
+Write-Host "  [+] Provisioned app list cleaned" -ForegroundColor Green
 
 Write-Host ""
 Write-Host "  [DONE] Bloatware removal and deep cleanup complete." -ForegroundColor Green

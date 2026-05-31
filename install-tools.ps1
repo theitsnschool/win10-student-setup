@@ -68,11 +68,25 @@ function Install-Winget {
 
     New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
 
-    $downloads = @{
+    Write-Host "  [>] Resolving latest winget release from GitHub..." -ForegroundColor Yellow
+    try {
+        $release    = Invoke-RestMethod -Uri "https://api.github.com/repos/microsoft/winget-cli/releases/latest" -UseBasicParsing -ErrorAction Stop
+        $msixUrl    = ($release.assets | Where-Object { $_.name -like "*.msixbundle" } | Select-Object -First 1).browser_download_url
+        $licenseUrl = ($release.assets | Where-Object { $_.name -like "*License1.xml" } | Select-Object -First 1).browser_download_url
+        if (-not $msixUrl -or -not $licenseUrl) { throw "Could not find required assets in release." }
+        Write-Host "  [+] Found winget $($release.tag_name)" -ForegroundColor Green
+    } catch {
+        Write-Host "  [!] GitHub API failed: $_" -ForegroundColor Red
+        Write-Host "      Falling back to known stable release (v1.28.240)..." -ForegroundColor DarkYellow
+        $msixUrl    = "https://github.com/microsoft/winget-cli/releases/download/v1.28.240/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
+        $licenseUrl = "https://github.com/microsoft/winget-cli/releases/download/v1.28.240/d7e5d3f83aea470a864caef75e32f8e3_License1.xml"
+    }
+
+    $downloads = [ordered]@{
         $vcLibsPath  = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
         $uiXamlPath  = "https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx"
-        $msixPath    = "https://github.com/microsoft/winget-cli/releases/latest/download/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-        $licensePath = "https://github.com/microsoft/winget-cli/releases/latest/download/58fd9e76a78a4462b4ade03a2edac57b_License1.xml"
+        $msixPath    = $msixUrl
+        $licensePath = $licenseUrl
     }
 
     Write-Host "  [>] Downloading dependencies..." -ForegroundColor Yellow

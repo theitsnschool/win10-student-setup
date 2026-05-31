@@ -43,11 +43,11 @@ function Install-App {
         Write-Host "  [=] Already installed: $Name" -ForegroundColor DarkGray
         $script:InstallLog.Add("[==] $Name (already present)")
     } else {
-        Write-Host "  [!] Failed: $Name (ID: $WingetId) — exit code $LASTEXITCODE" -ForegroundColor Red
+        Write-Host "  [!] Failed: $Name (ID: $WingetId) - exit code $LASTEXITCODE" -ForegroundColor Red
         $result | Where-Object { $_ -match "error|failed|blocked|0x" } |
             ForEach-Object { Write-Host "      >> $_" -ForegroundColor DarkRed }
         $script:FailedApps.Add("$Name ($WingetId)")
-        $script:InstallLog.Add("[!!] $Name — FAILED")
+        $script:InstallLog.Add("[!!] $Name - FAILED")
     }
 }
 
@@ -125,7 +125,7 @@ function Set-JavaHome {
         $env:JAVA_HOME = $found.FullName
         Write-Host "  [+] JAVA_HOME set to: $($found.FullName)" -ForegroundColor Green
     } else {
-        Write-Host "  [!] JDK path not found — set JAVA_HOME manually after reboot." -ForegroundColor DarkYellow
+        Write-Host "  [!] JDK path not found - set JAVA_HOME manually after reboot." -ForegroundColor DarkYellow
     }
 }
 
@@ -145,7 +145,7 @@ function Configure-Git {
         }
         Write-Host "  [+] Git configured (autocrlf, defaultBranch=main, editor=vscode, longpaths)" -ForegroundColor Green
     } else {
-        Write-Host "  [!] Git not in PATH yet — run after reboot:" -ForegroundColor DarkYellow
+        Write-Host "  [!] Git not in PATH yet - run after reboot:" -ForegroundColor DarkYellow
         Write-Host "      git config --global core.autocrlf true" -ForegroundColor DarkGray
         Write-Host "      git config --global init.defaultBranch main" -ForegroundColor DarkGray
         Write-Host "      git config --global core.editor `"code --wait`"" -ForegroundColor DarkGray
@@ -169,7 +169,7 @@ function Install-PipPackages {
             }
         }
     } else {
-        Write-Host "  [!] Python not in PATH yet — pip packages will need to be installed after reboot." -ForegroundColor DarkYellow
+        Write-Host "  [!] Python not in PATH yet - pip packages will need to be installed after reboot." -ForegroundColor DarkYellow
     }
 }
 
@@ -201,7 +201,7 @@ function Install-VSCodeExtensions {
             }
         }
     } else {
-        Write-Host "  [!] VS Code not in PATH yet — extensions will need to be installed after reboot." -ForegroundColor DarkYellow
+        Write-Host "  [!] VS Code not in PATH yet - extensions will need to be installed after reboot." -ForegroundColor DarkYellow
     }
 }
 
@@ -304,10 +304,10 @@ Write-Host "      pacman -Syu && pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64
 Write-Host ""
 Write-Step "[5/7] Installing PHP environment (XAMPP)..."
 Install-App "XAMPP 8.2" "ApacheFriends.Xampp.8.2"
-Write-Host "  [i] XAMPP installs to C:\xampp — use XAMPP Control Panel to start Apache/MySQL" -ForegroundColor Cyan
+Write-Host "  [i] XAMPP installs to C:\xampp - use XAMPP Control Panel to start Apache/MySQL" -ForegroundColor Cyan
 
 Write-Host ""
-Write-Step "[6/7] Installing productivity & utilities..."
+Write-Step "[6/7] Installing productivity and utilities..."
 Install-App "7-Zip"     "7zip.7zip"
 Install-App "VLC"       "VideoLAN.VLC"
 Install-App "Notepad++" "Notepad++.Notepad++"

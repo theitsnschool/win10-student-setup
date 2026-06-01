@@ -1,8 +1,6 @@
 #Requires -RunAsAdministrator
 
-$InstallSageMath     = $true
 $InstallPacketTracer = $false
-$InstallOffice       = $false
 $VerboseOutput       = $true
 
 $ProgressPreference  = 'SilentlyContinue'
@@ -245,10 +243,6 @@ function Print-Summary {
     if ($InstallPacketTracer) {
         Write-Host "  - Cisco Packet Tracer : https://www.netacad.com/resources/lab-downloads" -ForegroundColor DarkGray
     }
-    Write-Host "  - SageMath (if failed): https://www.sagemath.org/download-windows.html" -ForegroundColor DarkGray
-    if ($InstallOffice) {
-        Write-Host "  - Microsoft Office    : sign in with institution account to activate" -ForegroundColor DarkGray
-    }
     Write-Host "  - MSYS2 GCC           : open MSYS2 terminal and run:" -ForegroundColor DarkGray
     Write-Host "      pacman -Syu && pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-gdb mingw-w64-x86_64-make" -ForegroundColor DarkGray
     Write-Host ""
@@ -329,15 +323,6 @@ Install-App "Notepad++" "Notepad++.Notepad++"
 Write-Host ""
 Write-Step "[7/7] Optional tools..."
 
-if ($InstallSageMath) {
-    Write-Host "  [>] Installing SageMath (large download ~1GB, please wait)..." -ForegroundColor Yellow
-    Install-App "SageMath" "sagemath.sagemath"
-    Write-Host "  [i] If SageMath fails: https://www.sagemath.org/download-windows.html" -ForegroundColor Cyan
-} else {
-    Write-Host "  [=] Skipping SageMath (set InstallSageMath=true to enable)" -ForegroundColor DarkGray
-    Write-Host "      Manual: https://www.sagemath.org/download-windows.html" -ForegroundColor DarkGray
-}
-
 if ($InstallPacketTracer) {
     Write-Host "  [i] Packet Tracer requires a free Cisco NetAcad account." -ForegroundColor Cyan
     Write-Host "      1. Create account at https://www.netacad.com" -ForegroundColor DarkGray
@@ -345,14 +330,6 @@ if ($InstallPacketTracer) {
     Write-Host "      3. Download Packet Tracer from your course resources" -ForegroundColor DarkGray
 } else {
     Write-Host "  [=] Skipping Packet Tracer (set InstallPacketTracer=true for instructions)" -ForegroundColor DarkGray
-}
-
-if ($InstallOffice) {
-    Write-Host "  [>] Launching Microsoft Office installer..." -ForegroundColor Yellow
-    Install-App "Microsoft 365" "Microsoft.Office"
-    Write-Host "  [i] Sign in with your institution Microsoft account to activate." -ForegroundColor Cyan
-} else {
-    Write-Host "  [=] Skipping Office (set InstallOffice=true to enable)" -ForegroundColor DarkGray
 }
 
 Write-Host ""

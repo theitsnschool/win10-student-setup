@@ -17,8 +17,8 @@ if (-not $isAdmin) {
     exit 1
 }
 
-New-Item -ItemType Directory -Path $TempDir -Force | Out-Null
 Set-ExecutionPolicy Bypass -Scope Process -Force
+New-Item -ItemType Directory -Path $TempDir -Force | Out-Null
 
 Write-Host "Downloading scripts from GitHub..." -ForegroundColor Cyan
 $scripts = @("remove-bloatware.ps1", "install-tools.ps1", "install-office.ps1")
@@ -30,7 +30,7 @@ foreach ($script in $scripts) {
         Invoke-WebRequest -Uri $url -OutFile $dest -UseBasicParsing -ErrorAction Stop
         Write-Host "  [+] Downloaded: $script" -ForegroundColor Green
     } catch {
-        Write-Host "  [!] Failed to download $script" -ForegroundColor Red
+        Write-Host "  [!] Failed to download: $script" -ForegroundColor Red
         Write-Host "      URL: $url" -ForegroundColor DarkGray
         exit 1
     }
@@ -67,7 +67,7 @@ Write-Host ""
 Write-Host "  After restart:" -ForegroundColor Yellow
 Write-Host "  1. Run Windows Update (security patches)" -ForegroundColor White
 Write-Host "  2. Sign in to Office with your institution account" -ForegroundColor White
-Write-Host "  3. Open MSYS2 and run:" -ForegroundColor White
+Write-Host "  3. Open MSYS2 MINGW64 and run:" -ForegroundColor White
 Write-Host "       pacman -Syu" -ForegroundColor DarkGray
 Write-Host "       pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-gdb mingw-w64-x86_64-make" -ForegroundColor DarkGray
 Write-Host "  4. Install Packet Tracer from https://www.netacad.com" -ForegroundColor White

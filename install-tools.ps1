@@ -115,8 +115,22 @@ function Install-Winget {
     if (Test-Winget) {
         Write-Host "  [+] winget installed successfully: $(winget --version)" -ForegroundColor Green
     } else {
-        Write-Host "  [!] winget still not available. A reboot may be required before continuing." -ForegroundColor Red
-        exit 1
+        Write-Host ""
+        Write-Host "  [!] winget was installed but is not available in this session." -ForegroundColor Yellow
+        Write-Host "      A reboot is required before winget can be used." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "  Scheduling auto-resume after reboot..." -ForegroundColor Cyan
+
+        $resumeCmd = "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command `"irm https://raw.githubusercontent.com/bkaztaou/win10-student-setup/main/install-tools.ps1 | iex`""
+        Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" `
+            -Name "win10-student-setup-tools" -Value $resumeCmd -Force
+
+        Write-Host "  [+] Auto-resume registered. install-tools.ps1 will run automatically after reboot." -ForegroundColor Green
+        Write-Host ""
+        Write-Host "  Rebooting in 15 seconds... (close this window to cancel and reboot manually)" -ForegroundColor Red
+        Start-Sleep -Seconds 15
+        Restart-Computer -Force
+        exit
     }
 }
 
@@ -248,6 +262,9 @@ function Print-Summary {
     Write-Host ""
     Write-Host "  Restart the machine to apply all PATH and registry changes." -ForegroundColor Yellow
 }
+
+Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" `
+    -Name "win10-student-setup-tools" -ErrorAction SilentlyContinue
 
 Write-Host ""
 Write-Host "================================================" -ForegroundColor Cyan

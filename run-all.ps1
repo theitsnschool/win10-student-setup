@@ -1,7 +1,6 @@
 #Requires -RunAsAdministrator
 
 $RepoBase = "https://raw.githubusercontent.com/bkaztaou/win10-student-setup/main"
-$TempDir  = "$env:TEMP\win10-student-setup"
 $ProgressPreference = 'SilentlyContinue'
 
 Write-Host ""
@@ -18,9 +17,12 @@ if (-not $isAdmin) {
 }
 
 Set-ExecutionPolicy Bypass -Scope Process -Force
+$ErrorActionPreference = 'Stop'
+
+$TempDir = "C:\win10-student-setup"
 New-Item -ItemType Directory -Path $TempDir -Force | Out-Null
 
-Write-Host "Downloading scripts from GitHub..." -ForegroundColor Cyan
+Write-Host "Downloading scripts to $TempDir..." -ForegroundColor Cyan
 $scripts = @("remove-bloatware.ps1", "install-tools.ps1", "install-office.ps1")
 
 foreach ($script in $scripts) {
@@ -28,13 +30,17 @@ foreach ($script in $scripts) {
     $dest = "$TempDir\$script"
     try {
         Invoke-WebRequest -Uri $url -OutFile $dest -UseBasicParsing -ErrorAction Stop
-        Write-Host "  [+] Downloaded: $script" -ForegroundColor Green
+        if (-not (Test-Path $dest)) { throw "File not found after download." }
+        Write-Host "  [+] Downloaded: $script -> $dest" -ForegroundColor Green
     } catch {
-        Write-Host "  [!] Failed to download: $script" -ForegroundColor Red
+        Write-Host "  [!] Failed to download $script : $_" -ForegroundColor Red
         Write-Host "      URL: $url" -ForegroundColor DarkGray
         exit 1
     }
 }
+
+Write-Host ""
+Write-Host "  All scripts downloaded to: $TempDir" -ForegroundColor DarkGray
 
 Write-Host ""
 Write-Host "================================================" -ForegroundColor Green

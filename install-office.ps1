@@ -8,11 +8,6 @@ function Write-Step {
     Write-Host $Message -ForegroundColor $Color
 }
 
-function Test-Winget {
-    try { $null = winget --version 2>$null; return $true }
-    catch { return $false }
-}
-
 Write-Host ""
 Write-Host "================================================" -ForegroundColor Cyan
 Write-Host "  PHASE 1 - Microsoft Office Installation" -ForegroundColor Cyan
@@ -20,11 +15,15 @@ Write-Host "================================================" -ForegroundColor C
 
 Write-Host ""
 Write-Step "[1/2] Checking winget..."
-if (-not (Test-Winget)) {
-    Write-Host "  [!] winget not found. Run install-tools.ps1 first." -ForegroundColor Red
+try {
+    $wingetVersion = winget --version 2>$null
+    Write-Host "  [+] winget found: $wingetVersion" -ForegroundColor Green
+} catch {
+    Write-Host "  [!] winget is not available." -ForegroundColor Red
+    Write-Host "      Please install winget from the Microsoft Store (App Installer) and reboot before running this script." -ForegroundColor Yellow
+    Write-Host "      https://www.microsoft.com/store/productId/9NBLGGH4NNS1" -ForegroundColor DarkGray
     exit 1
 }
-Write-Host "  [+] winget found: $(winget --version)" -ForegroundColor Green
 
 Write-Host ""
 Write-Step "[2/2] Installing Microsoft 365..."

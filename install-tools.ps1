@@ -49,91 +49,6 @@ function Install-App {
     }
 }
 
-function Test-Winget {
-    try { $null = winget --version 2>$null; return $true }
-    catch { return $false }
-}
-
-function Install-Winget {
-    Write-Host ""
-    Write-Host "  [>] winget not found. Bootstrapping winget (App Installer)..." -ForegroundColor Yellow
-
-    $tmpDir      = "$env:TEMP\winget-bootstrap"
-    $vcLibsPath  = "$tmpDir\VCLibs.appx"
-    $uiXamlPath  = "$tmpDir\UIXaml.appx"
-    $msixPath    = "$tmpDir\winget.msixbundle"
-    $licensePath = "$tmpDir\license.xml"
-
-    New-Item -ItemType Directory -Path $tmpDir -Force | Out-Null
-
-    Write-Host "  [>] Resolving latest winget release from GitHub..." -ForegroundColor Yellow
-    try {
-        $release    = Invoke-RestMethod -Uri "https://api.github.com/repos/microsoft/winget-cli/releases/latest" -UseBasicParsing -ErrorAction Stop
-        $msixUrl    = ($release.assets | Where-Object { $_.name -like "*.msixbundle" } | Select-Object -First 1).browser_download_url
-        $licenseUrl = ($release.assets | Where-Object { $_.name -like "*License1.xml" } | Select-Object -First 1).browser_download_url
-        if (-not $msixUrl -or -not $licenseUrl) { throw "Could not find required assets in release." }
-        Write-Host "  [+] Found winget $($release.tag_name)" -ForegroundColor Green
-    } catch {
-        Write-Host "  [!] GitHub API failed: $_" -ForegroundColor Red
-        Write-Host "      Falling back to known stable release (v1.28.240)..." -ForegroundColor DarkYellow
-        $msixUrl    = "https://github.com/microsoft/winget-cli/releases/download/v1.28.240/Microsoft.DesktopAppInstaller_8wekyb3d8bbwe.msixbundle"
-        $licenseUrl = "https://github.com/microsoft/winget-cli/releases/download/v1.28.240/d7e5d3f83aea470a864caef75e32f8e3_License1.xml"
-    }
-
-    $downloads = [ordered]@{
-        $vcLibsPath  = "https://aka.ms/Microsoft.VCLibs.x64.14.00.Desktop.appx"
-        $uiXamlPath  = "https://github.com/microsoft/microsoft-ui-xaml/releases/download/v2.8.6/Microsoft.UI.Xaml.2.8.x64.appx"
-        $msixPath    = $msixUrl
-        $licensePath = $licenseUrl
-    }
-
-    Write-Host "  [>] Downloading dependencies..." -ForegroundColor Yellow
-    foreach ($dest in $downloads.Keys) {
-        try {
-            Invoke-WebRequest -Uri $downloads[$dest] -OutFile $dest -UseBasicParsing -ErrorAction Stop
-        } catch {
-            Write-Host "  [!] Download failed: $_" -ForegroundColor Red
-            Write-Host "      Install winget manually from the Microsoft Store (App Installer)." -ForegroundColor Yellow
-            exit 1
-        }
-    }
-
-    Write-Host "  [>] Installing VCLibs..." -ForegroundColor Yellow
-    Add-AppxPackage -Path $vcLibsPath -ErrorAction SilentlyContinue
-
-    Write-Host "  [>] Installing Microsoft.UI.Xaml..." -ForegroundColor Yellow
-    Add-AppxPackage -Path $uiXamlPath -ErrorAction SilentlyContinue
-
-    Write-Host "  [>] Installing winget (App Installer)..." -ForegroundColor Yellow
-    Add-AppxProvisionedPackage -Online -PackagePath $msixPath -LicensePath $licensePath -ErrorAction Stop | Out-Null
-
-    Remove-Item -Path $tmpDir -Recurse -Force -ErrorAction SilentlyContinue
-
-    $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
-                [System.Environment]::GetEnvironmentVariable("Path", "User")
-
-    if (Test-Winget) {
-        Write-Host "  [+] winget installed successfully: $(winget --version)" -ForegroundColor Green
-    } else {
-        Write-Host ""
-        Write-Host "  [!] winget was installed but is not available in this session." -ForegroundColor Yellow
-        Write-Host "      A reboot is required before winget can be used." -ForegroundColor Yellow
-        Write-Host ""
-        Write-Host "  Scheduling auto-resume after reboot..." -ForegroundColor Cyan
-
-        $resumeCmd = "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command `"irm https://raw.githubusercontent.com/bkaztaou/win10-student-setup/main/install-tools.ps1 | iex`""
-        Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" `
-            -Name "win10-student-setup-tools" -Value $resumeCmd -Force
-
-        Write-Host "  [+] Auto-resume registered. install-tools.ps1 will run automatically after reboot." -ForegroundColor Green
-        Write-Host ""
-        Write-Host "  Rebooting in 15 seconds... (close this window to cancel and reboot manually)" -ForegroundColor Red
-        Start-Sleep -Seconds 15
-        Restart-Computer -Force
-        exit
-    }
-}
-
 function Refresh-Path {
     $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" +
                 [System.Environment]::GetEnvironmentVariable("Path", "User")
@@ -263,9 +178,6 @@ function Print-Summary {
     Write-Host "  Restart the machine to apply all PATH and registry changes." -ForegroundColor Yellow
 }
 
-Remove-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Run" `
-    -Name "win10-student-setup-tools" -ErrorAction SilentlyContinue
-
 Write-Host ""
 Write-Host "================================================" -ForegroundColor Cyan
 Write-Host "  win10-student-setup - Tool Installer" -ForegroundColor Cyan
@@ -273,24 +185,28 @@ Write-Host "================================================" -ForegroundColor C
 
 Write-Host ""
 Write-Host "================================================" -ForegroundColor Cyan
-Write-Host "  PHASE 1 - Bootstrap: winget + Core Toolchain" -ForegroundColor Cyan
+Write-Host "  PHASE 1 - Bootstrap: Core Toolchain" -ForegroundColor Cyan
 Write-Host "================================================" -ForegroundColor Cyan
 
 Write-Host ""
-Write-Step "[BOOTSTRAP 1/3] Checking winget..."
-if (-not (Test-Winget)) {
-    Install-Winget
-} else {
-    Write-Host "  [+] winget found: $(winget --version)" -ForegroundColor Green
+Write-Step "[BOOTSTRAP 1/2] Checking winget..."
+try {
+    $wingetVersion = winget --version 2>$null
+    Write-Host "  [+] winget found: $wingetVersion" -ForegroundColor Green
+} catch {
+    Write-Host "  [!] winget is not available." -ForegroundColor Red
+    Write-Host "      Please install winget from the Microsoft Store (App Installer) and reboot before running this script." -ForegroundColor Yellow
+    Write-Host "      https://www.microsoft.com/store/productId/9NBLGGH4NNS1" -ForegroundColor DarkGray
+    exit 1
 }
 
 Write-Host ""
-Write-Step "[BOOTSTRAP 2/3] Refreshing winget sources..."
+Write-Step "[BOOTSTRAP 1/2] Refreshing winget sources..."
 winget source update --disable-interactivity 2>&1 | Out-Null
 Write-Host "  [+] Sources refreshed" -ForegroundColor Green
 
 Write-Host ""
-Write-Step "[BOOTSTRAP 3/3] Installing prerequisite tools..."
+Write-Step "[BOOTSTRAP 2/2] Installing prerequisite tools..."
 Install-App "Microsoft Visual C++ Redistributable x64" "Microsoft.VCRedist.2015+.x64"
 Install-App "Microsoft Visual C++ Redistributable x86" "Microsoft.VCRedist.2015+.x86"
 Install-App "PowerShell 7"                             "Microsoft.PowerShell"

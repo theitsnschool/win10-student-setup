@@ -21,13 +21,30 @@ Removes all bloatware, installs every tool you need, and activates Windows and O
 
 Follow these steps exactly, in order.
 
-### Step 1 - Open PowerShell as Administrator
+### Step 1 - Install winget (App Installer)
+
+winget is the Windows package manager used by this script to install all tools. It must be installed and working before running anything.
+
+1. Open the **Microsoft Store**
+2. Search for **App Installer**
+3. Click **Install** or **Update** if it is already there
+4. Once installed, **restart your PC**
+
+After rebooting, open PowerShell and verify winget works:
+
+```powershell
+winget --version
+```
+
+You should see a version number like `v1.28.240`. If the command is not found, repeat the steps above.
+
+### Step 2 - Open PowerShell as Administrator
 
 Press `Win + S`, type `PowerShell`, right-click **Windows PowerShell** and select **Run as administrator**.
 
 You should see a blue terminal window with a title like `Administrator: Windows PowerShell`.
 
-### Step 2 - Run the Master Script
+### Step 3 - Run the Master Script
 
 Paste this into the PowerShell window and press Enter:
 
@@ -44,7 +61,7 @@ The script will now run automatically through 3 phases:
 
 > During Phase 3, an activation menu will appear. Select **[1] HWID** to activate Windows, then run it again and select **[2] Ohook** to activate Office.
 
-### Step 3 - Set Up MSYS2 GCC Compiler
+### Step 4 - Set Up MSYS2 GCC Compiler
 
 After the script finishes, open the **MSYS2** app from the Start Menu and run:
 
@@ -60,15 +77,15 @@ pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-gdb mingw-w64-x86_64-make
 
 This installs the GCC C/C++ compiler used in Dev-C++ and VS Code.
 
-### Step 4 - Restart the Machine
+### Step 5 - Restart the Machine
 
 Restart Windows to apply all PATH, registry, and service changes.
 
-### Step 5 - Run Windows Update
+### Step 6 - Run Windows Update
 
 After restart, go to **Settings > Windows Update** and install all available updates. This ensures your security patches are current and no bloatware gets re-provisioned.
 
-### Step 6 - Verify Everything Works
+### Step 7 - Verify Everything Works
 
 Open a new PowerShell window and run:
 
@@ -83,11 +100,11 @@ gcc --version
 
 Every command should return a version number. If any fail, see the Troubleshooting section below.
 
-### Step 7 - Sign In to Office
+### Step 8 - Sign In to Office
 
 Open any Office app (Word, Excel, etc.) and sign in with your institution's Microsoft account to link your license.
 
-### Step 8 - Install Cisco Packet Tracer (if needed)
+### Step 9 - Install Cisco Packet Tracer (if needed)
 
 Packet Tracer requires a free Cisco NetAcad account:
 
@@ -195,12 +212,13 @@ Run this in the same PowerShell window before running any script.
 
 **`winget: command not found`**
 
-The script will auto-bootstrap winget if it is missing. If that also fails:
+winget must be installed before running the scripts. See Step 1 of the setup guide above.
 
 1. Open **Microsoft Store**
 2. Search for **App Installer**
 3. Install or update it
-4. Close and reopen PowerShell, then retry
+4. **Reboot the PC**
+5. Open a new PowerShell window and retry
 
 ---
 

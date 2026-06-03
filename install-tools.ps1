@@ -28,7 +28,8 @@ function Install-App {
         "--silent",
         "--accept-package-agreements",
         "--accept-source-agreements",
-        "--disable-interactivity"
+        "--disable-interactivity",
+        "--scope", "machine"
     ) + $ExtraArgs
 
     $result = & winget @args 2>&1
@@ -116,8 +117,11 @@ function Install-PipPackages {
 
 function Install-VSCodeExtensions {
     Refresh-Path
-    $codeExe = Get-Command code -ErrorAction SilentlyContinue
-    if ($codeExe) {
+    $codeCmd = "C:\Program Files\Microsoft VS Code\bin\code.cmd"
+    if (-not (Test-Path $codeCmd)) {
+        $codeCmd = Get-Command code -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
+    }
+    if ($codeCmd) {
         $extensions = @(
             "ms-python.python",
             "ms-python.debugpy",
@@ -134,7 +138,7 @@ function Install-VSCodeExtensions {
             "streetsidesoftware.code-spell-checker"
         )
         foreach ($ext in $extensions) {
-            $out = code --install-extension $ext --force 2>&1
+            $out = & $codeCmd --install-extension $ext --force 2>&1
             if ($LASTEXITCODE -eq 0) {
                 Write-Host "  [+] VS Code ext: $ext" -ForegroundColor Green
             } else {

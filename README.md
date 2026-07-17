@@ -50,7 +50,7 @@ Paste this into the PowerShell window and press Enter:
 
 ```powershell
 Set-ExecutionPolicy Bypass -Scope Process -Force
-irm https://raw.githubusercontent.com/bkaztaou/win10-student-setup/main/run-all.ps1 | iex
+irm https://raw.githubusercontent.com/theitsnschool/win10-student-setup/main/run-all.ps1 | iex
 ```
 
 The script will now run automatically through 3 phases:
@@ -165,10 +165,10 @@ Packet Tracer requires a free Cisco NetAcad account:
 If you only need to run one part, download the scripts first:
 
 ```powershell
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bkaztaou/win10-student-setup/main/remove-bloatware.ps1" -OutFile "remove-bloatware.ps1"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bkaztaou/win10-student-setup/main/install-tools.ps1" -OutFile "install-tools.ps1"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bkaztaou/win10-student-setup/main/install-office.ps1" -OutFile "install-office.ps1"
-Invoke-WebRequest -Uri "https://raw.githubusercontent.com/bkaztaou/win10-student-setup/main/run-all.ps1" -OutFile "run-all.ps1"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/theitsnschool/win10-student-setup/main/remove-bloatware.ps1" -OutFile "remove-bloatware.ps1"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/theitsnschool/win10-student-setup/main/install-tools.ps1" -OutFile "install-tools.ps1"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/theitsnschool/win10-student-setup/main/install-office.ps1" -OutFile "install-office.ps1"
+Invoke-WebRequest -Uri "https://raw.githubusercontent.com/theitsnschool/win10-student-setup/main/run-all.ps1" -OutFile "run-all.ps1"
 ```
 
 Then run whichever you need:

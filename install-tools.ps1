@@ -5,6 +5,7 @@ $VerboseOutput       = $true
 
 $ProgressPreference  = 'SilentlyContinue'
 $ErrorActionPreference = 'Stop'
+$PSNativeCommandUseErrorActionPreference = $false
 
 $script:InstallLog = [System.Collections.Generic.List[string]]::new()
 $script:FailedApps = [System.Collections.Generic.List[string]]::new()

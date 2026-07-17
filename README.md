@@ -66,13 +66,7 @@ The script will now run automatically through 3 phases:
 After the script finishes, open the **MSYS2** app from the Start Menu and run:
 
 ```bash
-pacman -Syu
-```
-
-Close and reopen MSYS2, then run:
-
-```bash
-pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-gdb mingw-w64-x86_64-make
+pacman -Syu && pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-gdb mingw-w64-x86_64-make
 ```
 
 This installs the GCC C/C++ compiler used in Dev-C++ and VS Code.

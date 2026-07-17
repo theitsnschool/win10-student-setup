@@ -1,6 +1,6 @@
 #Requires -RunAsAdministrator
 
-$RepoBase = "https://raw.githubusercontent.com/bkaztaou/win10-student-setup/main"
+$RepoBase = "https://raw.githubusercontent.com/theitsnschool/win10-student-setup/main"
 $ProgressPreference = 'SilentlyContinue'
 
 Write-Host ""

@@ -19,7 +19,8 @@ function Install-App {
     param(
         [string]$Name,
         [string]$WingetId,
-        [string[]]$ExtraArgs = @()
+        [string[]]$ExtraArgs = @(),
+        [string]$Scope = "machine"
     )
     if ($VerboseOutput) { Write-Host "  [>] Installing: $Name" -ForegroundColor Yellow }
 
@@ -29,9 +30,10 @@ function Install-App {
         "--silent",
         "--accept-package-agreements",
         "--accept-source-agreements",
-        "--disable-interactivity",
-        "--scope", "machine"
-    ) + $ExtraArgs
+        "--disable-interactivity"
+    )
+    if ($Scope) { $args += @("--scope", $Scope) }
+    $args += $ExtraArgs
 
     $result = & winget @args 2>&1
     $resultText = $result -join " "
@@ -179,8 +181,8 @@ Write-Host ""
 Write-Step "[BOOTSTRAP 2/2] Installing prerequisite tools..."
 Install-App "Microsoft Visual C++ Redistributable x64" "Microsoft.VCRedist.2015+.x64"
 Install-App "Microsoft Visual C++ Redistributable x86" "Microsoft.VCRedist.2015+.x86"
-Install-App "PowerShell 7"                             "Microsoft.PowerShell"
-Install-App "Windows Terminal"                         "Microsoft.WindowsTerminal"
+Install-App "PowerShell 7"                             "Microsoft.PowerShell" -ExtraArgs @("--installer-type", "wix")
+Install-App "Windows Terminal"                         "Microsoft.WindowsTerminal" -Scope "user"
 Install-App "Git for Windows"                          "Git.Git"
 Refresh-Path
 
@@ -197,7 +199,7 @@ Install-App "Google Chrome"   "Google.Chrome"
 Write-Host ""
 Write-Step "[2/7] Installing core dev tools..."
 Install-App "Visual Studio Code" "Microsoft.VisualStudioCode"
-Install-App "Python 3.12"        "Python.Python.3.12"
+Install-App "Python 3.12"        "Python.Python.3.12" -Scope $null
 Install-App "Node.js LTS"        "OpenJS.NodeJS.LTS"
 
 Write-Host ""
@@ -208,7 +210,7 @@ Set-JavaHome
 Write-Host ""
 Write-Step "[4/7] Installing C/C++ tools..."
 Install-App "Dev-C++ (Embarcadero)" "Embarcadero.Dev-C++"
-Install-App "MSYS2 (GCC/MinGW toolchain)" "MSYS2.MSYS2"
+Install-App "MSYS2 (GCC/MinGW toolchain)" "MSYS2.MSYS2" -Scope $null
 Write-Host "  [i] After MSYS2 installs, open MSYS2 terminal and run:" -ForegroundColor Cyan
 Write-Host "      pacman -Syu && pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-gdb mingw-w64-x86_64-make" -ForegroundColor DarkGray
 

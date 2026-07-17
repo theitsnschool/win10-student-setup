@@ -116,41 +116,6 @@ function Install-PipPackages {
     }
 }
 
-function Install-VSCodeExtensions {
-    Refresh-Path
-    $codeCmd = "C:\Program Files\Microsoft VS Code\bin\code.cmd"
-    if (-not (Test-Path $codeCmd)) {
-        $codeCmd = Get-Command code -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source
-    }
-    if ($codeCmd) {
-        $extensions = @(
-            "ms-python.python",
-            "ms-python.debugpy",
-            "ms-python.pylint",
-            "vscjava.vscode-java-pack",
-            "ms-vscode.cpptools",
-            "ms-vscode.cpptools-extension-pack",
-            "bmewburn.vscode-intelephense-client",
-            "ritwickdey.LiveServer",
-            "esbenp.prettier-vscode",
-            "eamodio.gitlens",
-            "ms-vscode.powershell",
-            "formulahendry.code-runner",
-            "streetsidesoftware.code-spell-checker"
-        )
-        foreach ($ext in $extensions) {
-            $out = & $codeCmd --install-extension $ext --force 2>&1
-            if ($LASTEXITCODE -eq 0) {
-                Write-Host "  [+] VS Code ext: $ext" -ForegroundColor Green
-            } else {
-                Write-Host "  [!] VS Code ext failed: $ext" -ForegroundColor DarkYellow
-            }
-        }
-    } else {
-        Write-Host "  [!] VS Code not in PATH yet - extensions will need to be installed after reboot." -ForegroundColor DarkYellow
-    }
-}
-
 function Print-Summary {
     Write-Host ""
     Write-Host "================================================" -ForegroundColor Cyan
@@ -282,9 +247,5 @@ Configure-Git
 Write-Host ""
 Write-Step "Installing common Python packages..."
 Install-PipPackages
-
-Write-Host ""
-Write-Step "Installing VS Code extensions..."
-Install-VSCodeExtensions
 
 Print-Summary
